@@ -193,12 +193,16 @@ server <- function(input, output, session) {
     #Use the code below to validate that data exists,
     #(you'll need to install the shinyalert package if you don't have it)
     #and then create the appropriate scatter plot
+    output$scatterPlot <- renderPlot({
+
       validate(
         need(!is.null(sample_corr$corr_data), "Please select your variables, subset, and click the 'Get a Sample!' button.")
-      ) #this is a useful function to add as a placeholder until data is generated!
+      ) 
+      #this is a useful function to add as a placeholder until data is generated!
       ggplot(sample_corr$corr_data, aes_string(x = isolate(input$corr_x), y = isolate(input$corr_y))) +
-        geom_point()
-
+        geom_point() + 
+        labs(x = input$corr_x, y + input$corr_y, title = "Scatter Plot of Selected Variables")
+})
     
     #Use this code for the correlation guessing game!
     observeEvent(input$corr_submit, {
