@@ -7,58 +7,62 @@ source("helpers.R")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
-  title = "Correlation Exploration",
+titlePanel("Correlation Exploration"),
   
   sidebarLayout(
     sidebarPanel(
       h2("Select Variables to Find Correlation:"),
-      selectizeInput(
-      inputID = "corr_x",
-      label = "x Variable",
-      choices = "numeric_vars"
-    )
       
-      selectizeInput(inputID = "corr_y"),
-      label = "y Variable",
-      choices = "numeric_vars"
-    )
+      selectizeInput(
+        inputID = "corr_x",
+        label = "x Variable",
+        choices = numeric_vars
+    ),
+      
+      selectizeInput(
+        inputID = "corr_y",
+        label = "y Variable",
+        choices = "numeric_vars"
+    ),
     
-    h2("Select a subset of the data:")
+    h2("Select a subset of the data:"),
+    
       radioButtons(
         inputID = "hhl_corr",
-        label = "Household Language"
+        label = "Household Language",
         choices = hhl_corr
-      )
+    ),
       
       radioButtons(
         inputID = "fs_corr",
-        label = "SNAP Recipient"
+        label = "SNAP Recipient",
         choices = fs_corr
-      )
+    ),
       
       radioButtons(
         inputID = "schl_corr",
-        label = "Educational attainment"
+        label = "Educational attainment",
         choices = schl_corr
-      )
+    ),
       
       #"put your selectize inputs here!",
      #"Give them internal IDs of corr_x and corr_y.",
       #"Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`",
      # "Palce your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
       h2("Select a Sample Size"),
+    
       sliderInput(
         inputID = "corr_n",
         min = 20,
         max = 500,
         value = 20
-      )
     ),
       #Put your slider for sample size here. Give this an ID of corr_n
       actionButton("corr_sample","Get a Sample!")
     ),
     mainPanel(
-      "Add a plotOutput here for the scatter plot",
+     plotOutput("corr_plot"),
+       #"Add a plotOutput here for the scatter plot",
       conditionalPanel("input.corr_sample",
                        h2("Guess the correlation!"),
                        column(6, 
@@ -87,7 +91,20 @@ server <- function(input, output, session) {
     #Create a reactiveValues() object called sample_corr
     #this object should hve two elements, corr_data and corr_truth
     #both should be set to null to start with!
-
+    sample_corr <- reactiveValues(
+      corr_data = NULL,
+      corr_truth = NULL
+    )
+    
+    observeEvent(input$corr_x, {
+      updateSelectizeInput(session, "corr_y",
+                           choices = setdiff(numeric_vars, input$corr_x))
+    })
+    
+    observeEvent(input$corr_y, {
+      updateSelectizeInput(session, "corr_x",
+                           choices = setdiff(numeric_vars, input$corr_y))
+    })
     #update input boxes so they can't choose the same variable
     observeEvent(c(input$corr_x, input$corr_y), {
       corr_x <- input$corr_x
@@ -104,6 +121,7 @@ server <- function(input, output, session) {
     #Use an observeEvent() to look for the action button (corr_sample)
     #Modify the code below (this will need to go in the observeEvent) to
     #subset the data appropriately
+    observeEvent(input$corr_sample, {
       if(input$hhl_corr == "all"){
         hhl_sub <- HHLvals
       } else if(input$hhl_corr == "english"){
@@ -150,10 +168,20 @@ server <- function(input, output, session) {
         {if("PINCP" %in% corr_vars) filter(., AGEP > 18) else .} %>%
         {if("JWMNP" %in% corr_vars) filter(., !is.na(JWMNP)) else .} 
       
+      if (nrow(subsetted_data) > 0) {
       index <- sample(1:nrow(subsetted_data), 
                       size = input$corr_n, 
                       replace = TRUE, 
                       prob = subsetted_data$PWGTP/sum(subsetted_data$PWGTP))
+      
+      sample_corr$corr_data <- subsetted_data[index, ]
+      sample_corr$corr_truth <- cor(sample_corr$corr_data|> select(corr_vars)[1,2]) }
+      else {
+      sample_corr$corr_data <- NULL
+      sample_corr$corr_truth <- NULL
+      showNotification("No data available for selected filters.", type = "error")
+      }
+    })
       #Update the sample_corr reactive value object
       #the corr_data argument should be updated to be the subsetted_data[index,]
       #the corr_truth argument should be updated to be the correlation between 
