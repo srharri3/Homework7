@@ -9,6 +9,9 @@ ui <- fluidPage(
 
 titlePanel("Correlation Exploration"),
   
+#"put your selectize inputs here!",
+#"Give them internal IDs of corr_x and corr_y.",
+#"Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`",
   sidebarLayout(
     sidebarPanel(
       h2("Select Variables to Find Correlation:"),
@@ -27,7 +30,7 @@ titlePanel("Correlation Exploration"),
     ),
     
     h2("Select a subset of the data:"),
-    
+    # "Place your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
       radioButtons(
         inputId = "hhl_corr",
         label = "Household Language",
@@ -46,12 +49,8 @@ titlePanel("Correlation Exploration"),
         choices = c("All","High School not Completed", "High School or GED","College Degree")
     ),
       
-      #"put your selectize inputs here!",
-     #"Give them internal IDs of corr_x and corr_y.",
-      #"Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`",
-     # "Place your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
       h2("Select a Sample Size"),
-    
+   #Put your slider for sample size here. Give this an ID of corr_n
       sliderInput(
         inputId = "corr_n",
         label = NULL,
@@ -59,7 +58,6 @@ titlePanel("Correlation Exploration"),
         max = 500,
         value = 20
     ),
-      #Put your slider for sample size here. Give this an ID of corr_n
       actionButton("corr_sample","Get a Sample!")
     ),
     mainPanel(
@@ -193,7 +191,7 @@ server <- function(input, output, session) {
       #this is a useful function to add as a placeholder until data is generated!
       ggplot(sample_corr$corr_data, aes_string(x = isolate(input$corr_x), y = isolate(input$corr_y))) +
         geom_point() + 
-        labs(x = input$corr_x, y = input$corr_y, title = "Scatter Plot of Selected Variables")
+        labs(x = input$corr_x, y = input$corr_y)
 })
     
     #Use this code for the correlation guessing game!
