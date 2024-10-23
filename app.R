@@ -14,45 +14,47 @@ titlePanel("Correlation Exploration"),
       h2("Select Variables to Find Correlation:"),
       
       selectizeInput(
-        inputID = "corr_x",
+        inputId = "corr_x",
         label = "x Variable",
-        choices = numeric_vars
+        choices = numeric_vars,
+        selected = "PINCP"
     ),
       
       selectizeInput(
-        inputID = "corr_y",
+        inputId = "corr_y",
         label = "y Variable",
-        choices = "numeric_vars"
+        choices = numeric_vars
     ),
     
     h2("Select a subset of the data:"),
     
       radioButtons(
-        inputID = "hhl_corr",
+        inputId = "hhl_corr",
         label = "Household Language",
-        choices = hhl_corr
+        choices = c("All", "English only","Spanish","Other")
     ),
       
       radioButtons(
-        inputID = "fs_corr",
+        inputId = "fs_corr",
         label = "SNAP Recipient",
-        choices = fs_corr
+        choices = c("All", "Yes","No")
     ),
       
       radioButtons(
-        inputID = "schl_corr",
+        inputId = "schl_corr",
         label = "Educational attainment",
-        choices = schl_corr
+        choices = c("All","High School not Completed", "High School or GED","College Degree")
     ),
       
       #"put your selectize inputs here!",
      #"Give them internal IDs of corr_x and corr_y.",
       #"Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`",
-     # "Palce your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
+     # "Place your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
       h2("Select a Sample Size"),
     
       sliderInput(
-        inputID = "corr_n",
+        inputId = "corr_n",
+        label = NULL,
         min = 20,
         max = 500,
         value = 20
@@ -61,7 +63,7 @@ titlePanel("Correlation Exploration"),
       actionButton("corr_sample","Get a Sample!")
     ),
     mainPanel(
-     plotOutput("corr_plot"),
+     plotOutput("scatterPlot"),
        #"Add a plotOutput here for the scatter plot",
       conditionalPanel("input.corr_sample",
                        h2("Guess the correlation!"),
@@ -95,16 +97,6 @@ server <- function(input, output, session) {
       corr_data = NULL,
       corr_truth = NULL
     )
-    
-    observeEvent(input$corr_x, {
-      updateSelectizeInput(session, "corr_y",
-                           choices = setdiff(numeric_vars, input$corr_x))
-    })
-    
-    observeEvent(input$corr_y, {
-      updateSelectizeInput(session, "corr_x",
-                           choices = setdiff(numeric_vars, input$corr_y))
-    })
     #update input boxes so they can't choose the same variable
     observeEvent(c(input$corr_x, input$corr_y), {
       corr_x <- input$corr_x
@@ -175,7 +167,7 @@ server <- function(input, output, session) {
                       prob = subsetted_data$PWGTP/sum(subsetted_data$PWGTP))
       
       sample_corr$corr_data <- subsetted_data[index, ]
-      sample_corr$corr_truth <- cor(sample_corr$corr_data|> select(corr_vars)[1,2]) }
+      sample_corr$corr_truth <- cor(sample_corr$corr_data[,corr_vars], use = "complete.obs") }
       else {
       sample_corr$corr_data <- NULL
       sample_corr$corr_truth <- NULL
@@ -201,7 +193,7 @@ server <- function(input, output, session) {
       #this is a useful function to add as a placeholder until data is generated!
       ggplot(sample_corr$corr_data, aes_string(x = isolate(input$corr_x), y = isolate(input$corr_y))) +
         geom_point() + 
-        labs(x = input$corr_x, y + input$corr_y, title = "Scatter Plot of Selected Variables")
+        labs(x = input$corr_x, y = input$corr_y, title = "Scatter Plot of Selected Variables")
 })
     
     #Use this code for the correlation guessing game!
