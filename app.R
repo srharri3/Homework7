@@ -167,7 +167,7 @@ server <- function(input, output, session) {
                       prob = subsetted_data$PWGTP/sum(subsetted_data$PWGTP))
       
       sample_corr$corr_data <- subsetted_data[index, ]
-      sample_corr$corr_truth <- cor(sample_corr$corr_data[,corr_vars], use = "complete.obs") }
+      sample_corr$corr_truth <- cor(sample_corr$corr_data[,corr_vars], use = "complete.obs")[1,2] }
       else {
       sample_corr$corr_data <- NULL
       sample_corr$corr_truth <- NULL
